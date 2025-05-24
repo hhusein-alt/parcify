@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: parcify
+    env: python
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: HUGGING_FACE_API_URL
+        sync: false
+      - key: HUGGING_FACE_API_TOKEN
+        sync: false 
