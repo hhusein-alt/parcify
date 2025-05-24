@@ -3,7 +3,8 @@ services:
     name: parcify
     env: python
     buildCommand: |
-      pip install --upgrade pip
+      apt-get update && apt-get install -y build-essential python3-dev
+      pip install --upgrade pip setuptools wheel
       pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
@@ -12,4 +13,9 @@ services:
       - key: HUGGING_FACE_API_URL
         sync: false
       - key: HUGGING_FACE_API_TOKEN
-        sync: false 
+        sync: false
+    plan: standard
+    disk:
+      name: tmp
+      mountPath: /tmp
+      sizeGB: 1 
