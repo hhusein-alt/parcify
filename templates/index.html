@@ -1,0 +1,2153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parcify - AI-Powered Web Data Extractor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/d3@7.0.0/dist/d3.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/plotly.js@2.14.0/dist/plotly.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .btn-primary {
+            background-color: #3498db;
+            border: none;
+            padding: 12px 25px;
+            width: 100%;
+        }
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: none;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        .export-buttons {
+            margin-top: 15px;
+            display: none;
+        }
+        .detected-type {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e8f4f8;
+            border-radius: 5px;
+            display: none;
+        }
+        .query-examples {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .query-examples h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        .query-examples ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .query-examples li {
+            margin-bottom: 5px;
+            color: #666;
+        }
+        .features-section {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+        .feature-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .feature-card h3 {
+            color: #2c3e50;
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+        }
+        .feature-card p {
+            color: #666;
+            margin-bottom: 0;
+        }
+        .ai-badge {
+            background-color: #3498db;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+        .comparison-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        .comparison-table th, .comparison-table td {
+            padding: 12px;
+            border: 1px solid #dee2e6;
+        }
+        .comparison-table th {
+            background-color: #f8f9fa;
+        }
+        .check-mark {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .cross-mark {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .data-visualization {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .analysis-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .stats-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .stats-card h4 {
+            color: #2c3e50;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        .stats-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .advanced-options {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+        .filter-section {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .result-tabs {
+            margin-top: 20px;
+        }
+        .nav-tabs .nav-link {
+            color: #2c3e50;
+        }
+        .nav-tabs .nav-link.active {
+            color: #3498db;
+            font-weight: bold;
+        }
+        .export-options {
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .export-btn {
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .export-btn:hover {
+            transform: translateY(-2px);
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .loading-content {
+            text-align: center;
+        }
+        .progress {
+            height: 5px;
+            margin-top: 10px;
+        }
+        .ai-insights {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f4f8;
+            border-radius: 8px;
+            display: none;
+        }
+        .visualization-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .chart-controls {
+            margin-bottom: 15px;
+        }
+        .search-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .search-results {
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .search-result-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .search-result-item:hover {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .visualization-type-selector {
+            margin-bottom: 15px;
+        }
+        .auth-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .auth-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .auth-tabs .btn-link {
+            color: #2c3e50;
+            text-decoration: none;
+            padding: 10px 20px;
+        }
+        
+        .auth-tabs .btn-link.active {
+            color: #3498db;
+            font-weight: bold;
+        }
+        
+        .auth-form {
+            margin-top: 20px;
+        }
+        
+        .auth-form .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .auth-form .btn {
+            width: 100%;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Data Analysis Tool</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" onclick="showTab('visualization')">Visualization</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showTab('semantic')">Semantic Search</a>
+                    </li>
+                </ul>
+                <button id="authButton" class="btn btn-outline-light" onclick="toggleAuth()">Sign In</button>
+                <button id="profileButton" class="btn btn-outline-info ms-2" style="display:none;" onclick="openProfileModal()">Profile</button>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <h1>Parcify - AI-Powered Web Data Extractor</h1>
+        
+        <!-- Main Form Section -->
+        <form id="parseForm">
+            <div class="form-group">
+                <label for="url" class="form-label">Enter Website URL:</label>
+                <input type="url" class="form-control" id="url" name="url" placeholder="https://example.com" required>
+            </div>
+            <div class="form-group">
+                <label for="query" class="form-label">What would you like to extract? (Optional)</label>
+                <input type="text" class="form-control" id="query" name="query" 
+                       placeholder="e.g., 'Get all product prices' or 'Find all images with descriptions'">
+            </div>
+            <div class="form-group">
+                <label for="parseType" class="form-label">Or select data type manually:</label>
+                <select class="form-select" id="parseType" name="parseType">
+                    <option value="h1">Headings (H1)</option>
+                    <option value="links">Links</option>
+                    <option value="images">Images</option>
+                    <option value="prices">Prices</option>
+                    <option value="tables">Tables</option>
+                    <option value="products">Products</option>
+                    <option value="reviews">Reviews</option>
+                    <option value="contact_info">Contact Information</option>
+                </select>
+            </div>
+            
+            <!-- Advanced Options -->
+            <div class="advanced-options" id="advancedOptions">
+                <h4>Advanced Options</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="extractMetadata">
+                            <label class="form-check-label" for="extractMetadata">
+                                Extract Metadata
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="followLinks">
+                            <label class="form-check-label" for="followLinks">
+                                Follow Internal Links
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="generateInsights">
+                            <label class="form-check-label" for="generateInsights">
+                                Generate AI Insights
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="validateData">
+                            <label class="form-check-label" for="validateData">
+                                Validate Data
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New AI Analysis Options -->
+                <div class="ai-analysis-options mt-3">
+                    <h5>AI Analysis Options</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="sentimentAnalysis">
+                                <label class="form-check-label" for="sentimentAnalysis">
+                                    Sentiment Analysis
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="entityExtraction">
+                                <label class="form-check-label" for="entityExtraction">
+                                    Entity Extraction
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="textClassification">
+                                <label class="form-check-label" for="textClassification">
+                                    Text Classification
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="semanticSearch">
+                                <label class="form-check-label" for="semanticSearch">
+                                    Semantic Search
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="button" class="btn btn-link" onclick="toggleAdvancedOptions()">Show Advanced Options</button>
+            <button type="submit" class="btn btn-primary">Extract Data</button>
+        </form>
+
+        <!-- Features Section -->
+        <div class="features-section">
+            <h2 class="text-center mb-4">Why Choose Parcify?</h2>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <h3>AI-Powered Analysis <span class="ai-badge">AI</span></h3>
+                        <p>Our advanced AI understands your natural language queries and automatically determines what data to extract.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <h3>Smart Data Extraction</h3>
+                        <p>Automatically detects and extracts structured data like prices, tables, and product information.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <h3>Instant Results</h3>
+                        <p>No complex setup or configuration needed. Get your data in seconds.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Table -->
+            <div class="mt-5">
+                <h3 class="text-center mb-4">How Parcify Compares</h3>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Parcify</th>
+                            <th>Competitors</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>AI-Powered Query Understanding</td>
+                            <td class="check-mark">✓</td>
+                            <td class="cross-mark">✗</td>
+                        </tr>
+                        <tr>
+                            <td>No Coding Required</td>
+                            <td class="check-mark">✓</td>
+                            <td class="check-mark">✓</td>
+                        </tr>
+                        <tr>
+                            <td>Instant Setup</td>
+                            <td class="check-mark">✓</td>
+                            <td class="cross-mark">✗</td>
+                        </tr>
+                        <tr>
+                            <td>Natural Language Processing</td>
+                            <td class="check-mark">✓</td>
+                            <td class="cross-mark">✗</td>
+                        </tr>
+                        <tr>
+                            <td>Real-time Data Extraction</td>
+                            <td class="check-mark">✓</td>
+                            <td class="check-mark">✓</td>
+                        </tr>
+                        <tr>
+                            <td>Multiple Export Formats</td>
+                            <td class="check-mark">✓</td>
+                            <td class="check-mark">✓</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="query-examples">
+            <h3>Example Queries:</h3>
+            <ul>
+                <li>"Get all product prices from this page"</li>
+                <li>"Find all images with their descriptions"</li>
+                <li>"Extract all links from the navigation menu"</li>
+                <li>"Get all table data from this page"</li>
+                <li>"Find all main headings on this page"</li>
+            </ul>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-content">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Analyzing and extracting data...</p>
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="result" class="result">
+            <h2>Results</h2>
+            
+            <!-- Result Tabs -->
+            <ul class="nav nav-tabs result-tabs" id="resultTabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="data-tab" data-bs-toggle="tab" href="#data" role="tab">Data</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="visualization-tab" data-bs-toggle="tab" href="#visualization" role="tab">Visualization</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="analysis-tab" data-bs-toggle="tab" href="#analysis" role="tab">Analysis</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="ai-analysis-tab" data-bs-toggle="tab" href="#ai-analysis" role="tab">AI Analysis</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="data-processing-tab" data-bs-toggle="tab" href="#data-processing" role="tab">
+                        Data Processing
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="semantic-search-tab" data-bs-toggle="tab" href="#semantic-search" role="tab">
+                        Semantic Search
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="mydata-tab" data-bs-toggle="tab" href="#mydata" role="tab">My Data</a>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="resultTabContent">
+                <!-- Data Tab -->
+                <div class="tab-pane fade show active" id="data" role="tabpanel">
+                    <div class="filter-section">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <input type="text" class="form-control" id="dataFilter" placeholder="Filter results...">
+                            </div>
+                            <div class="col-md-6">
+                                <select class="form-select" id="sortOrder">
+                                    <option value="asc">Sort Ascending</option>
+                                    <option value="desc">Sort Descending</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <pre id="output" class="bg-light p-3 rounded"></pre>
+                </div>
+                
+                <!-- Visualization Tab -->
+                <div class="tab-pane fade" id="visualization" role="tabpanel">
+                    <div class="visualization-container">
+                        <div class="visualization-type-selector">
+                            <select class="form-select" id="visualizationType">
+                                <option value="bar">Bar Chart</option>
+                                <option value="line">Line Chart</option>
+                                <option value="pie">Pie Chart</option>
+                                <option value="scatter">Scatter Plot</option>
+                                <option value="heatmap">Heatmap</option>
+                                <option value="network">Network Graph</option>
+                                <option value="wordcloud">Word Cloud</option>
+                                <option value="bubble">Bubble Chart</option>
+                                <option value="radar">Radar Chart</option>
+                                <option value="box">Box Plot</option>
+                                <option value="violin">Violin Plot</option>
+                                <option value="sunburst">Sunburst Chart</option>
+                                <option value="treemap">Treemap</option>
+                                <option value="sankey">Sankey Diagram</option>
+                                <option value="funnel">Funnel Chart</option>
+                            </select>
+                        </div>
+                        <div class="chart-controls">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label class="form-label">X-Axis</label>
+                                    <select class="form-select" id="xAxisSelect"></select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Y-Axis</label>
+                                    <select class="form-select" id="yAxisSelect"></select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Color By</label>
+                                    <select class="form-select" id="colorSelect"></select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Size By</label>
+                                    <select class="form-select" id="sizeSelect"></select>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Chart Theme</label>
+                                    <select class="form-select" id="chartTheme">
+                                        <option value="default">Default</option>
+                                        <option value="dark">Dark</option>
+                                        <option value="light">Light</option>
+                                        <option value="colorful">Colorful</option>
+                                        <option value="minimal">Minimal</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Animation</label>
+                                    <select class="form-select" id="chartAnimation">
+                                        <option value="none">None</option>
+                                        <option value="fade">Fade</option>
+                                        <option value="bounce">Bounce</option>
+                                        <option value="elastic">Elastic</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Interactivity</label>
+                                    <select class="form-select" id="chartInteractivity">
+                                        <option value="basic">Basic</option>
+                                        <option value="advanced">Advanced</option>
+                                        <option value="minimal">Minimal</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="mainChart"></div>
+                        <div id="secondaryChart" class="mt-4"></div>
+                    </div>
+                </div>
+                
+                <!-- Analysis Tab -->
+                <div class="tab-pane fade" id="analysis" role="tabpanel">
+                    <div class="analysis-panel">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="stats-card">
+                                    <h4>Total Items</h4>
+                                    <div class="stats-value" id="totalItems">0</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stats-card">
+                                    <h4>Processing Time</h4>
+                                    <div class="stats-value" id="processingTime">0s</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stats-card">
+                                    <h4>Data Quality</h4>
+                                    <div class="stats-value" id="dataQuality">0%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ai-insights" id="aiInsights">
+                        <h4>AI Insights</h4>
+                        <div id="insightsContent"></div>
+                    </div>
+                </div>
+
+                <!-- AI Analysis Tab -->
+                <div class="tab-pane fade" id="ai-analysis" role="tabpanel">
+                    <div class="ai-analysis-panel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        <h5>Sentiment Analysis</h5>
+                                    </div>
+                                    <div class="card-body" id="sentimentResults">
+                                        <!-- Sentiment analysis results will be displayed here -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        <h5>Entity Extraction</h5>
+                                    </div>
+                                    <div class="card-body" id="entityResults">
+                                        <!-- Entity extraction results will be displayed here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Text Classification</h5>
+                                    </div>
+                                    <div class="card-body" id="classificationResults">
+                                        <!-- Text classification results will be displayed here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add new tab content for Data Processing -->
+                <div class="tab-pane fade" id="data-processing" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Data Processing</h5>
+                            <div class="mb-3">
+                                <label class="form-label">Export Format</label>
+                                <select class="form-select" id="export-format">
+                                    <option value="json">JSON</option>
+                                    <option value="csv">CSV</option>
+                                    <option value="excel">Excel</option>
+                                    <option value="xml">XML</option>
+                                    <option value="yaml">YAML</option>
+                                    <option value="markdown">Markdown</option>
+                                    <option value="html">HTML</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <button class="btn btn-primary" onclick="processData()">Process Data</button>
+                            </div>
+                            <div id="processed-data" class="mt-3">
+                                <pre class="bg-light p-3 rounded"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add new tab content for Semantic Search -->
+                <div class="tab-pane fade" id="semantic-search" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Semantic Search</h5>
+                            
+                            <!-- Search Form -->
+                            <div class="mb-3">
+                                <label class="form-label">Search Query</label>
+                                <input type="text" class="form-control" id="search-query" placeholder="Enter your search query...">
+                            </div>
+                            
+                            <!-- Advanced Search Options -->
+                            <div class="mb-3">
+                                <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#advancedSearchOptions">
+                                    Advanced Search Options
+                                </button>
+                                <div class="collapse" id="advancedSearchOptions">
+                                    <div class="card card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Number of Results</label>
+                                                    <input type="number" class="form-control" id="search-limit" value="5" min="1" max="50">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Sort By</label>
+                                                    <select class="form-select" id="search-sort-by">
+                                                        <option value="">None</option>
+                                                        <option value="score">Relevance Score</option>
+                                                        <option value="date">Date</option>
+                                                        <option value="title">Title</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Sort Order</label>
+                                                    <select class="form-select" id="search-sort-order">
+                                                        <option value="desc">Descending</option>
+                                                        <option value="asc">Ascending</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Filters</label>
+                                                    <div id="search-filters">
+                                                        <!-- Dynamic filters will be added here -->
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <button class="btn btn-primary" onclick="performSemanticSearch()">Search</button>
+                            </div>
+                            
+                            <!-- Search Results -->
+                            <div id="search-results" class="mt-3">
+                                <div class="list-group"></div>
+                            </div>
+                            
+                            <!-- Search History -->
+                            <div class="mt-4">
+                                <h6>Recent Searches</h6>
+                                <div id="search-history" class="list-group"></div>
+                            </div>
+                            
+                            <!-- Document Clusters -->
+                            <div class="mt-4">
+                                <h6>Document Clusters</h6>
+                                <div class="mb-3">
+                                    <label class="form-label">Number of Clusters</label>
+                                    <input type="number" class="form-control" id="cluster-count" value="5" min="2" max="10">
+                                    <button class="btn btn-secondary mt-2" onclick="generateClusters()">Generate Clusters</button>
+                                </div>
+                                <div id="document-clusters" class="row"></div>
+                            </div>
+                            
+                            <!-- Similar Documents -->
+                            <div class="mt-4">
+                                <h6>Similar Documents</h6>
+                                <div id="similar-documents" class="list-group"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add My Data Tab Content -->
+                <div class="tab-pane fade" id="mydata" role="tabpanel">
+                    <ul class="nav nav-tabs mb-3" id="myDataSubTabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="search-history-subtab" data-bs-toggle="tab" href="#search-history-panel" role="tab">Search History</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="export-history-subtab" data-bs-toggle="tab" href="#export-history-panel" role="tab">Export History</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="saved-searches-subtab" data-bs-toggle="tab" href="#saved-searches-panel" role="tab">Saved Searches</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="search-history-panel" role="tabpanel">
+                            <div id="user-search-history" class="list-group"></div>
+                        </div>
+                        <div class="tab-pane fade" id="export-history-panel" role="tabpanel">
+                            <div id="user-export-history" class="list-group"></div>
+                        </div>
+                        <div class="tab-pane fade" id="saved-searches-panel" role="tabpanel">
+                            <div id="user-saved-searches" class="list-group"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Options -->
+            <div class="export-options">
+                <button class="btn btn-success export-btn" onclick="exportData('json')">Export as JSON</button>
+                <button class="btn btn-info export-btn" onclick="exportData('csv')">Export as CSV</button>
+                <button class="btn btn-primary export-btn" onclick="exportData('excel')">Export as Excel</button>
+                <button class="btn btn-secondary export-btn" onclick="exportData('pdf')">Export as PDF</button>
+                <button class="btn btn-warning export-btn" onclick="exportData('xml')">Export as XML</button>
+                <button class="btn btn-danger export-btn" onclick="exportData('yaml')">Export as YAML</button>
+                <button class="btn btn-dark export-btn" onclick="exportData('markdown')">Export as Markdown</button>
+                <button class="btn btn-light export-btn" onclick="exportData('html')">Export as HTML</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add this after the container div opening tag -->
+    <div class="auth-container" id="authContainer">
+        <div class="auth-box">
+            <h2>Authentication</h2>
+            <div class="auth-tabs">
+                <button class="btn btn-link active" onclick="showAuthTab('signin')">Sign In</button>
+                <button class="btn btn-link" onclick="showAuthTab('signup')">Sign Up</button>
+            </div>
+            
+            <!-- Sign In Form -->
+            <form id="signinForm" class="auth-form">
+                <div class="form-group">
+                    <label for="signinEmail">Email</label>
+                    <input type="email" class="form-control" id="signinEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="signinPassword">Password</label>
+                    <input type="password" class="form-control" id="signinPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Sign In</button>
+                <button type="button" class="btn btn-link" onclick="showAuthTab('reset')">Forgot Password?</button>
+            </form>
+            
+            <!-- Sign Up Form -->
+            <form id="signupForm" class="auth-form" style="display: none;">
+                <div class="form-group">
+                    <label for="signupEmail">Email</label>
+                    <input type="email" class="form-control" id="signupEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">Password</label>
+                    <input type="password" class="form-control" id="signupPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" class="form-control" id="confirmPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Sign Up</button>
+            </form>
+            
+            <!-- Reset Password Form -->
+            <form id="resetForm" class="auth-form" style="display: none;">
+                <div class="form-group">
+                    <label for="resetEmail">Email</label>
+                    <input type="email" class="form-control" id="resetEmail" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Reset Password</button>
+                <button type="button" class="btn btn-link" onclick="showAuthTab('signin')">Back to Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add User Profile Modal -->
+    <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="profileModalLabel">User Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="profileForm">
+                        <div class="mb-3 text-center">
+                            <img id="profileAvatar" src="" alt="Avatar" class="rounded-circle mb-2" width="80" height="80">
+                            <input type="url" class="form-control" id="profileAvatarUrl" placeholder="Avatar URL">
+                        </div>
+                        <div class="mb-3">
+                            <label for="profileEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="profileEmail" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="profileName" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="profileName" placeholder="Full Name">
+                        </div>
+                        <div class="mb-3">
+                            <label for="profilePreferences" class="form-label">Preferences (JSON)</label>
+                            <textarea class="form-control" id="profilePreferences" rows="2" placeholder='{"theme":"dark"}'></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Admin Panel Tab to Navbar (hidden by default) -->
+    <li class="nav-item" id="adminPanelNav" style="display:none;">
+      <a class="nav-link" id="adminpanel-tab" data-bs-toggle="tab" href="#adminpanel" role="tab">Admin Panel</a>
+    </li>
+
+    <!-- Add Admin Panel Tab Content -->
+    <div class="tab-pane fade" id="adminpanel" role="tabpanel">
+      <h3>Admin Panel</h3>
+      <ul class="nav nav-tabs mb-3" id="adminPanelSubTabs" role="tablist">
+        <li class="nav-item"><a class="nav-link active" id="admin-users-subtab" data-bs-toggle="tab" href="#admin-users-panel" role="tab">Users</a></li>
+        <li class="nav-item"><a class="nav-link" id="admin-search-history-subtab" data-bs-toggle="tab" href="#admin-search-history-panel" role="tab">Search History</a></li>
+        <li class="nav-item"><a class="nav-link" id="admin-export-history-subtab" data-bs-toggle="tab" href="#admin-export-history-panel" role="tab">Export History</a></li>
+        <li class="nav-item"><a class="nav-link" id="admin-saved-searches-subtab" data-bs-toggle="tab" href="#admin-saved-searches-panel" role="tab">Saved Searches</a></li>
+      </ul>
+      <div class="tab-content">
+        <div class="tab-pane fade show active" id="admin-users-panel" role="tabpanel">
+          <div id="admin-users-table"></div>
+        </div>
+        <div class="tab-pane fade" id="admin-search-history-panel" role="tabpanel">
+          <div id="admin-search-history-table"></div>
+        </div>
+        <div class="tab-pane fade" id="admin-export-history-panel" role="tabpanel">
+          <div id="admin-export-history-table"></div>
+        </div>
+        <div class="tab-pane fade" id="admin-saved-searches-panel" role="tabpanel">
+          <div id="admin-saved-searches-table"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.0.0/dist/d3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js@2.14.0/dist/plotly.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-wordcloud@0.1.0/dist/chartjs-chart-wordcloud.min.js"></script>
+    <script>
+        let dataChart = null;
+        let currentUser = null;
+
+        function toggleAdvancedOptions() {
+            const advancedOptions = document.getElementById('advancedOptions');
+            advancedOptions.style.display = advancedOptions.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        function updateStats(data) {
+            document.getElementById('totalItems').textContent = data.metadata.items_found;
+            document.getElementById('processingTime').textContent = data.metadata.processing_time;
+            document.getElementById('dataQuality').textContent = '95%'; // Example value
+        }
+
+        function generateChart(data) {
+            const visualizationType = document.getElementById('visualizationType').value;
+            const xAxis = document.getElementById('xAxisSelect').value;
+            const yAxis = document.getElementById('yAxisSelect').value;
+            const colorBy = document.getElementById('colorSelect').value;
+            const sizeBy = document.getElementById('sizeSelect').value;
+            const theme = document.getElementById('chartTheme').value;
+            const animation = document.getElementById('chartAnimation').value;
+            const interactivity = document.getElementById('chartInteractivity').value;
+
+            // Apply theme
+            const themeConfig = getThemeConfig(theme);
+            Plotly.newPlot('mainChart', [], { template: themeConfig });
+
+            switch (visualizationType) {
+                case 'bar':
+                    generateBarChart(data, xAxis, yAxis, colorBy);
+                    break;
+                case 'line':
+                    generateLineChart(data, xAxis, yAxis, colorBy);
+                    break;
+                case 'pie':
+                    generatePieChart(data, xAxis, yAxis);
+                    break;
+                case 'scatter':
+                    generateScatterPlot(data, xAxis, yAxis, colorBy);
+                    break;
+                case 'heatmap':
+                    generateHeatmap(data, xAxis, yAxis);
+                    break;
+                case 'network':
+                    generateNetworkGraph(data);
+                    break;
+                case 'wordcloud':
+                    generateWordCloud(data);
+                    break;
+                case 'bubble':
+                    generateBubbleChart(data, xAxis, yAxis, colorBy, sizeBy);
+                    break;
+                case 'radar':
+                    generateRadarChart(data, xAxis, yAxis);
+                    break;
+                case 'box':
+                    generateBoxPlot(data, xAxis, yAxis);
+                    break;
+                case 'violin':
+                    generateViolinPlot(data, xAxis, yAxis);
+                    break;
+                case 'sunburst':
+                    generateSunburstChart(data);
+                    break;
+                case 'treemap':
+                    generateTreemap(data);
+                    break;
+                case 'sankey':
+                    generateSankeyDiagram(data);
+                    break;
+                case 'funnel':
+                    generateFunnelChart(data, xAxis, yAxis);
+                    break;
+            }
+
+            // Apply animation
+            if (animation !== 'none') {
+                applyAnimation(animation);
+            }
+
+            // Apply interactivity
+            applyInteractivity(interactivity);
+        }
+
+        function getThemeConfig(theme) {
+            const themes = {
+                default: 'plotly',
+                dark: {
+                    paper_bgcolor: '#2c3e50',
+                    plot_bgcolor: '#2c3e50',
+                    font: { color: '#ecf0f1' },
+                    colorway: ['#3498db', '#2ecc71', '#e74c3c', '#f1c40f', '#9b59b6']
+                },
+                light: {
+                    paper_bgcolor: '#ffffff',
+                    plot_bgcolor: '#ffffff',
+                    font: { color: '#2c3e50' },
+                    colorway: ['#3498db', '#2ecc71', '#e74c3c', '#f1c40f', '#9b59b6']
+                },
+                colorful: {
+                    paper_bgcolor: '#ffffff',
+                    plot_bgcolor: '#ffffff',
+                    font: { color: '#2c3e50' },
+                    colorway: ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#1abc9c', '#e67e22']
+                },
+                minimal: {
+                    paper_bgcolor: '#ffffff',
+                    plot_bgcolor: '#ffffff',
+                    font: { color: '#2c3e50' },
+                    colorway: ['#95a5a6', '#7f8c8d', '#34495e', '#2c3e50', '#1a1a1a']
+                }
+            };
+            return themes[theme] || themes.default;
+        }
+
+        function generateBubbleChart(data, xAxis, yAxis, colorBy, sizeBy) {
+            const trace = {
+                x: data.map(item => item[xAxis]),
+                y: data.map(item => item[yAxis]),
+                mode: 'markers',
+                type: 'scatter',
+                marker: {
+                    size: data.map(item => item[sizeBy] || 10),
+                    color: data.map(item => item[colorBy]),
+                    colorscale: 'Viridis',
+                    showscale: true
+                }
+            };
+
+            const layout = {
+                title: `${yAxis} vs ${xAxis} (Bubble Size: ${sizeBy})`,
+                xaxis: { title: xAxis },
+                yaxis: { title: yAxis }
+            };
+
+            Plotly.newPlot('mainChart', [trace], layout);
+        }
+
+        function generateRadarChart(data, xAxis, yAxis) {
+            const categories = [...new Set(data.map(item => item[xAxis]))];
+            const values = categories.map(cat => {
+                const items = data.filter(item => item[xAxis] === cat);
+                return items.reduce((sum, item) => sum + item[yAxis], 0) / items.length;
+            });
+
+            const trace = {
+                type: 'scatterpolar',
+                r: values,
+                theta: categories,
+                fill: 'toself'
+            };
+
+            const layout = {
+                polar: {
+                    radialaxis: {
+                        visible: true,
+                        range: [0, Math.max(...values) * 1.1]
+                    }
+                },
+                showlegend: false
+            };
+
+            Plotly.newPlot('mainChart', [trace], layout);
+        }
+
+        function generateBoxPlot(data, xAxis, yAxis) {
+            const categories = [...new Set(data.map(item => item[xAxis]))];
+            const traces = categories.map(cat => {
+                const values = data
+                    .filter(item => item[xAxis] === cat)
+                    .map(item => item[yAxis]);
+                return {
+                    y: values,
+                    type: 'box',
+                    name: cat
+                };
+            });
+
+            const layout = {
+                title: `Distribution of ${yAxis} by ${xAxis}`,
+                xaxis: { title: xAxis },
+                yaxis: { title: yAxis }
+            };
+
+            Plotly.newPlot('mainChart', traces, layout);
+        }
+
+        function generateViolinPlot(data, xAxis, yAxis) {
+            const categories = [...new Set(data.map(item => item[xAxis]))];
+            const traces = categories.map(cat => {
+                const values = data
+                    .filter(item => item[xAxis] === cat)
+                    .map(item => item[yAxis]);
+                return {
+                    y: values,
+                    type: 'violin',
+                    name: cat,
+                    box: { visible: true },
+                    meanline: { visible: true }
+                };
+            });
+
+            const layout = {
+                title: `Distribution of ${yAxis} by ${xAxis}`,
+                xaxis: { title: xAxis },
+                yaxis: { title: yAxis }
+            };
+
+            Plotly.newPlot('mainChart', traces, layout);
+        }
+
+        function generateSunburstChart(data) {
+            const trace = {
+                type: 'sunburst',
+                ids: data.map(item => item.id),
+                labels: data.map(item => item.label),
+                parents: data.map(item => item.parent),
+                values: data.map(item => item.value)
+            };
+
+            const layout = {
+                title: 'Hierarchical Data Structure'
+            };
+
+            Plotly.newPlot('mainChart', [trace], layout);
+        }
+
+        function generateTreemap(data) {
+            const trace = {
+                type: 'treemap',
+                ids: data.map(item => item.id),
+                labels: data.map(item => item.label),
+                parents: data.map(item => item.parent),
+                values: data.map(item => item.value)
+            };
+
+            const layout = {
+                title: 'Hierarchical Data Structure'
+            };
+
+            Plotly.newPlot('mainChart', [trace], layout);
+        }
+
+        function generateSankeyDiagram(data) {
+            const trace = {
+                type: 'sankey',
+                node: {
+                    pad: 15,
+                    thickness: 20,
+                    line: { color: 'black', width: 0.5 },
+                    label: data.nodes,
+                    color: 'blue'
+                },
+                link: {
+                    source: data.links.map(link => link.source),
+                    target: data.links.map(link => link.target),
+                    value: data.links.map(link => link.value)
+                }
+            };
+
+            const layout = {
+                title: 'Flow Diagram'
+            };
+
+            Plotly.newPlot('mainChart', [trace], layout);
+        }
+
+        function generateFunnelChart(data, xAxis, yAxis) {
+            const trace = {
+                type: 'funnel',
+                y: data.map(item => item[xAxis]),
+                x: data.map(item => item[yAxis])
+            };
+
+            const layout = {
+                title: 'Funnel Analysis'
+            };
+
+            Plotly.newPlot('mainChart', [trace], layout);
+        }
+
+        function applyAnimation(animation) {
+            const animations = {
+                fade: {
+                    transition: { duration: 1000 },
+                    frame: { duration: 500, redraw: false }
+                },
+                bounce: {
+                    transition: { duration: 1000, easing: 'bounce' },
+                    frame: { duration: 500, redraw: false }
+                },
+                elastic: {
+                    transition: { duration: 1000, easing: 'elastic' },
+                    frame: { duration: 500, redraw: false }
+                }
+            };
+
+            Plotly.animate('mainChart', animations[animation]);
+        }
+
+        function applyInteractivity(level) {
+            const config = {
+                basic: {
+                    displayModeBar: true,
+                    displaylogo: false,
+                    modeBarButtonsToRemove: ['lasso2d', 'select2d']
+                },
+                advanced: {
+                    displayModeBar: true,
+                    displaylogo: false,
+                    modeBarButtonsToAdd: ['drawline', 'drawopenpath', 'drawclosedpath', 'drawcircle', 'drawrect', 'eraseshape']
+                },
+                minimal: {
+                    displayModeBar: false
+                }
+            };
+
+            Plotly.newPlot('mainChart', [], {}, config[level]);
+        }
+
+        async function exportData(format) {
+            const data = JSON.parse(document.getElementById('output').textContent);
+            
+            switch (format) {
+                case 'json':
+                    exportAsJSON(data);
+                    break;
+                case 'csv':
+                    exportAsCSV(data);
+                    break;
+                case 'excel':
+                    await exportAsExcel(data);
+                    break;
+                case 'pdf':
+                    await exportAsPDF(data);
+                    break;
+                case 'xml':
+                    exportAsXML(data);
+                    break;
+                case 'yaml':
+                    exportAsYAML(data);
+                    break;
+                case 'markdown':
+                    exportAsMarkdown(data);
+                    break;
+                case 'html':
+                    exportAsHTML(data);
+                    break;
+            }
+        }
+
+        function exportAsJSON(data) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            downloadBlob(blob, 'parcify-export.json');
+        }
+
+        function exportAsCSV(data) {
+            const csv = convertToCSV(data);
+            const blob = new Blob([csv], { type: 'text/csv' });
+            downloadBlob(blob, 'parcify-export.csv');
+        }
+
+        async function exportAsExcel(data) {
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Data');
+            
+            // Add headers
+            const headers = Object.keys(data[0]);
+            worksheet.addRow(headers);
+            
+            // Add data
+            data.forEach(item => {
+                worksheet.addRow(Object.values(item));
+            });
+            
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            downloadBlob(blob, 'parcify-export.xlsx');
+        }
+
+        async function exportAsPDF(data) {
+            const doc = new jsPDF();
+            
+            // Add title
+            doc.setFontSize(16);
+            doc.text('Parcify Export', 14, 15);
+            
+            // Add data
+            doc.setFontSize(10);
+            let y = 30;
+            data.forEach(item => {
+                Object.entries(item).forEach(([key, value]) => {
+                    doc.text(`${key}: ${value}`, 14, y);
+                    y += 7;
+                });
+                y += 5;
+            });
+            
+            doc.save('parcify-export.pdf');
+        }
+
+        function exportAsXML(data) {
+            const xml = convertToXML(data);
+            const blob = new Blob([xml], { type: 'application/xml' });
+            downloadBlob(blob, 'parcify-export.xml');
+        }
+
+        function exportAsYAML(data) {
+            const yaml = jsyaml.dump(data);
+            const blob = new Blob([yaml], { type: 'text/yaml' });
+            downloadBlob(blob, 'parcify-export.yaml');
+        }
+
+        function exportAsMarkdown(data) {
+            const md = convertToMarkdown(data);
+            const blob = new Blob([md], { type: 'text/markdown' });
+            downloadBlob(blob, 'parcify-export.md');
+        }
+
+        function exportAsHTML(data) {
+            const headers = Object.keys(data[0]);
+            const html = [
+                '<!DOCTYPE html>',
+                '<html>',
+                '<head>',
+                '  <title>Parcify Export</title>',
+                '  <style>',
+                '    table { border-collapse: collapse; width: 100%; }',
+                '    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }',
+                '    th { background-color: #f2f2f2; }',
+                '  </style>',
+                '</head>',
+                '<body>',
+                '  <table>',
+                '    <thead>',
+                '      <tr>',
+                '        ' + headers.map(h => `<th>${h}</th>`).join(''),
+                '      </tr>',
+                '    </thead>',
+                '    <tbody>'
+            ];
+            
+            data.forEach(item => {
+                html.push(
+                    '      <tr>',
+                    '        ' + headers.map(h => `<td>${item[h]}</td>`).join(''),
+                    '      </tr>'
+                );
+            });
+            
+            html.push(
+                '    </tbody>',
+                '  </table>',
+                '</body>',
+                '</html>'
+            );
+            
+            return html.join('\n');
+        }
+
+        function downloadBlob(blob, filename) {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        async function performSemanticSearch() {
+            const query = document.getElementById('search-query').value;
+            const limit = document.getElementById('search-limit').value;
+            const sortBy = document.getElementById('search-sort-by').value;
+            const sortOrder = document.getElementById('search-sort-order').value;
+            const filters = getSearchFilters();
+            
+            try {
+                const response = await fetch('/api/semantic-search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query,
+                        k: parseInt(limit),
+                        sort_by: sortBy || null,
+                        sort_order: sortOrder,
+                        filters: filters
+                    })
+                });
+
+                const result = await response.json();
+                displaySearchResults(result.results);
+                updateSearchHistory();
+            } catch (error) {
+                console.error('Error performing semantic search:', error);
+                alert('Error performing semantic search. Please try again.');
+            }
+        }
+
+        function getSearchFilters() {
+            const filters = {};
+            const filterElements = document.querySelectorAll('#search-filters .filter-item');
+            filterElements.forEach(element => {
+                const key = element.dataset.key;
+                const value = element.value;
+                if (value) {
+                    filters[key] = value;
+                }
+            });
+            return filters;
+        }
+
+        function displaySearchResults(results) {
+            const container = document.querySelector('#search-results .list-group');
+            container.innerHTML = '';
+
+            results.forEach(result => {
+                const resultElement = document.createElement('div');
+                resultElement.className = 'list-group-item';
+                resultElement.innerHTML = `
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">Score: ${result.score.toFixed(2)}</h6>
+                        <small>${new Date().toLocaleString()}</small>
+                    </div>
+                    <p class="mb-1">${result.content}</p>
+                    <small>Metadata: ${JSON.stringify(result.metadata)}</small>
+                    <button class="btn btn-sm btn-outline-primary mt-2" 
+                            onclick="findSimilarDocuments('${result.metadata.id}')">
+                        Find Similar
+                    </button>
+                `;
+                container.appendChild(resultElement);
+            });
+        }
+
+        async function updateSearchHistory() {
+            try {
+                const response = await fetch('/api/search-history');
+                const data = await response.json();
+                
+                const container = document.getElementById('search-history');
+                container.innerHTML = '';
+                
+                data.history.forEach(item => {
+                    const historyElement = document.createElement('div');
+                    historyElement.className = 'list-group-item';
+                    historyElement.innerHTML = `
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">${item.query}</h6>
+                            <small>${new Date(item.timestamp).toLocaleString()}</small>
+                        </div>
+                        <small>Results: ${item.results_count}</small>
+                    `;
+                    container.appendChild(historyElement);
+                });
+            } catch (error) {
+                console.error('Error fetching search history:', error);
+            }
+        }
+
+        async function findSimilarDocuments(docId) {
+            try {
+                const response = await fetch(`/api/similar-documents/${docId}`);
+                const data = await response.json();
+                
+                const container = document.getElementById('similar-documents');
+                container.innerHTML = '';
+                
+                data.similar_documents.forEach(doc => {
+                    const docElement = document.createElement('div');
+                    docElement.className = 'list-group-item';
+                    docElement.innerHTML = `
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Similarity: ${doc.score.toFixed(2)}</h6>
+                        </div>
+                        <p class="mb-1">${doc.content}</p>
+                        <small>Metadata: ${JSON.stringify(doc.metadata)}</small>
+                    `;
+                    container.appendChild(docElement);
+                });
+            } catch (error) {
+                console.error('Error finding similar documents:', error);
+            }
+        }
+
+        async function generateClusters() {
+            const nClusters = document.getElementById('cluster-count').value;
+            
+            try {
+                const response = await fetch(`/api/document-clusters?n_clusters=${nClusters}`);
+                const data = await response.json();
+                
+                const container = document.getElementById('document-clusters');
+                container.innerHTML = '';
+                
+                data.clusters.forEach(cluster => {
+                    const clusterElement = document.createElement('div');
+                    clusterElement.className = 'col-md-6 mb-3';
+                    clusterElement.innerHTML = `
+                        <div class="card">
+                            <div class="card-header">
+                                Cluster ${cluster.cluster_id} (${cluster.size} documents)
+                            </div>
+                            <div class="card-body">
+                                <div class="list-group">
+                                    ${cluster.documents.map(doc => `
+                                        <div class="list-group-item">
+                                            <p class="mb-1">${doc.content.substring(0, 100)}...</p>
+                                            <small>Metadata: ${JSON.stringify(doc.metadata)}</small>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(clusterElement);
+                });
+            } catch (error) {
+                console.error('Error generating clusters:', error);
+            }
+        }
+
+        // Initialize search filters based on metadata stats
+        async function initializeSearchFilters() {
+            try {
+                const response = await fetch('/api/metadata-stats');
+                const data = await response.json();
+                
+                const container = document.getElementById('search-filters');
+                container.innerHTML = '';
+                
+                Object.entries(data.stats).forEach(([key, values]) => {
+                    const filterElement = document.createElement('div');
+                    filterElement.className = 'mb-2';
+                    filterElement.innerHTML = `
+                        <label class="form-label">${key}</label>
+                        <select class="form-select filter-item" data-key="${key}">
+                            <option value="">All</option>
+                            ${values.map(value => `
+                                <option value="${value}">${value}</option>
+                            `).join('')}
+                        </select>
+                    `;
+                    container.appendChild(filterElement);
+                });
+            } catch (error) {
+                console.error('Error initializing search filters:', error);
+            }
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeSearchFilters();
+            updateSearchHistory();
+        });
+
+        document.getElementById('parseForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const url = document.getElementById('url').value;
+            const query = document.getElementById('query').value;
+            const parseType = document.getElementById('parseType').value;
+            const options = {
+                extractMetadata: document.getElementById('extractMetadata').checked,
+                followLinks: document.getElementById('followLinks').checked,
+                generateInsights: document.getElementById('generateInsights').checked,
+                validateData: document.getElementById('validateData').checked,
+                sentimentAnalysis: document.getElementById('sentimentAnalysis').checked,
+                entityExtraction: document.getElementById('entityExtraction').checked,
+                textClassification: document.getElementById('textClassification').checked,
+                semanticSearch: document.getElementById('semanticSearch').checked
+            };
+            
+            showLoading();
+
+            try {
+                const response = await fetch('/api/parse', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url, type: parseType, query, options })
+                });
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    // Update data display
+                    document.getElementById('output').textContent = JSON.stringify(data.data, null, 2);
+                    document.getElementById('result').style.display = 'block';
+                    
+                    // Update stats
+                    updateStats(data);
+                    
+                    // Generate chart
+                    generateChart(data);
+                    
+                    // Show AI insights if available
+                    if (data.insights) {
+                        document.getElementById('insightsContent').innerHTML = data.insights;
+                        document.getElementById('aiInsights').style.display = 'block';
+                    }
+
+                    // Perform additional AI analysis if requested
+                    if (options.sentimentAnalysis) {
+                        const sentimentResults = await performSentimentAnalysis(data.data);
+                        document.getElementById('sentimentResults').innerHTML = 
+                            `<pre>${JSON.stringify(sentimentResults, null, 2)}</pre>`;
+                    }
+
+                    if (options.entityExtraction) {
+                        const entityResults = await performEntityExtraction(data.data);
+                        document.getElementById('entityResults').innerHTML = 
+                            `<pre>${JSON.stringify(entityResults, null, 2)}</pre>`;
+                    }
+
+                    if (options.textClassification) {
+                        const classificationResults = await performTextClassification(data.data);
+                        document.getElementById('classificationResults').innerHTML = 
+                            `<pre>${JSON.stringify(classificationResults, null, 2)}</pre>`;
+                    }
+                } else {
+                    alert(`Error: ${data.error}`);
+                }
+            } catch (error) {
+                alert(`An error occurred: ${error.message}`);
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // Filter and sort event listeners
+        document.getElementById('dataFilter').addEventListener('input', function(e) {
+            const data = JSON.parse(document.getElementById('output').textContent);
+            const filteredData = filterData(data, e.target.value);
+            document.getElementById('output').textContent = JSON.stringify(filteredData, null, 2);
+        });
+
+        document.getElementById('sortOrder').addEventListener('change', function(e) {
+            const data = JSON.parse(document.getElementById('output').textContent);
+            const sortedData = sortData(data, e.target.value);
+            document.getElementById('output').textContent = JSON.stringify(sortedData, null, 2);
+        });
+
+        // Add new JavaScript functions for data processing
+        async function processData() {
+            const format = document.getElementById('export-format').value;
+            const data = currentData; // Assuming currentData is your parsed data
+
+            try {
+                const response = await fetch('/api/process-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        data: data,
+                        format: format
+                    })
+                });
+
+                const result = await response.json();
+                const processedDataElement = document.querySelector('#processed-data pre');
+                
+                if (format === 'excel') {
+                    // Handle Excel download
+                    const blob = new Blob([result.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'export.xlsx';
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    processedDataElement.textContent = result.data;
+                }
+            } catch (error) {
+                console.error('Error processing data:', error);
+                alert('Error processing data. Please try again.');
+            }
+        }
+
+        // Show/hide auth container
+        function toggleAuth() {
+            const container = document.getElementById('authContainer');
+            container.style.display = container.style.display === 'none' ? 'flex' : 'none';
+        }
+        
+        // Show specific auth tab
+        function showAuthTab(tab) {
+            document.querySelectorAll('.auth-form').forEach(form => form.style.display = 'none');
+            document.getElementById(tab + 'Form').style.display = 'block';
+            
+            document.querySelectorAll('.auth-tabs .btn-link').forEach(btn => btn.classList.remove('active'));
+            if (tab !== 'reset') {
+                document.querySelector(`.auth-tabs .btn-link[onclick="showAuthTab('${tab}')"]`).classList.add('active');
+            }
+        }
+        
+        // Handle sign in
+        document.getElementById('signinForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signinEmail').value;
+            const password = document.getElementById('signinPassword').value;
+            
+            try {
+                const response = await fetch('/api/auth/signin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                if (data.status === 'success') {
+                    currentUser = data.data;
+                    localStorage.setItem('authToken', data.data.session.access_token);
+                    toggleAuth();
+                    updateUIForAuth();
+                } else {
+                    alert('Sign in failed: ' + data.message);
+                }
+            } catch (error) {
+                alert('Error signing in: ' + error.message);
+            }
+        });
+        
+        // Handle sign up
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                alert('Passwords do not match');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                if (data.status === 'success') {
+                    alert('Registration successful! Please check your email to confirm your account.');
+                    showAuthTab('signin');
+                } else {
+                    alert('Sign up failed: ' + data.message);
+                }
+            } catch (error) {
+                alert('Error signing up: ' + error.message);
+            }
+        });
+        
+        // Handle password reset
+        document.getElementById('resetForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('resetEmail').value;
+            
+            try {
+                const response = await fetch('/api/auth/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                
+                const data = await response.json();
+                if (data.status === 'success') {
+                    alert('Password reset email sent! Please check your email.');
+                    showAuthTab('signin');
+                } else {
+                    alert('Password reset failed: ' + data.message);
+                }
+            } catch (error) {
+                alert('Error resetting password: ' + error.message);
+            }
+        });
+        
+        // Update UI based on authentication state
+        function updateUIForAuth() {
+            const authButton = document.getElementById('authButton');
+            const profileButton = document.getElementById('profileButton');
+            const adminPanelNav = document.getElementById('adminPanelNav');
+            if (currentUser) {
+                authButton.textContent = 'Sign Out';
+                authButton.onclick = signOut;
+                profileButton.style.display = 'inline-block';
+                // Show admin panel if admin
+                if (currentUser.email === ADMIN_EMAIL) {
+                    adminPanelNav.style.display = 'block';
+                } else {
+                    adminPanelNav.style.display = 'none';
+                }
+            } else {
+                authButton.textContent = 'Sign In';
+                authButton.onclick = toggleAuth;
+                profileButton.style.display = 'none';
+                adminPanelNav.style.display = 'none';
+            }
+        }
+        
+        // Handle sign out
+        async function signOut() {
+            try {
+                const token = localStorage.getItem('authToken');
+                if (token) {
+                    await fetch('/api/auth/signout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token })
+                    });
+                }
+            } catch (error) {
+                console.error('Error signing out:', error);
+            } finally {
+                currentUser = null;
+                localStorage.removeItem('authToken');
+                updateUIForAuth();
+            }
+        }
+        
+        // Check authentication status on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                try {
+                    const response = await fetch('/api/auth/user', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        currentUser = data.data;
+                        updateUIForAuth();
+                    }
+                } catch (error) {
+                    console.error('Error checking auth status:', error);
+                    localStorage.removeItem('authToken');
+                }
+            }
+        });
+
+        // Open profile modal and load user profile
+        function openProfileModal() {
+            const token = localStorage.getItem('authToken');
+            if (!token) return;
+            fetch('/api/user/profile', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(res => res.json())
+            .then(profile => {
+                document.getElementById('profileEmail').value = profile.email || '';
+                document.getElementById('profileName').value = profile.full_name || '';
+                document.getElementById('profileAvatar').src = profile.avatar_url || 'https://ui-avatars.com/api/?name=' + (profile.full_name || 'User');
+                document.getElementById('profileAvatarUrl').value = profile.avatar_url || '';
+                document.getElementById('profilePreferences').value = profile.preferences ? JSON.stringify(profile.preferences, null, 2) : '';
+                var modal = new bootstrap.Modal(document.getElementById('profileModal'));
+                modal.show();
+            });
+        }
+
+        // Save profile changes
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('authToken');
+            if (!token) return;
+            const data = {
+                full_name: document.getElementById('profileName').value,
+                avatar_url: document.getElementById('profileAvatarUrl').value,
+                preferences: (() => {
+                    try { return JSON.parse(document.getElementById('profilePreferences').value); } catch { return {}; }
+                })()
+            };
+            fetch('/api/user/profile', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(profile => {
+                alert('Profile updated!');
+                document.getElementById('profileAvatar').src = profile.avatar_url || 'https://ui-avatars.com/api/?name=' + (profile.full_name || 'User');
+            });
+        });
+
+        // Fetch and render user data for My Data tab
+        async function fetchUserSearchHistory() {
+            const token = localStorage.getItem('authToken');
+            if (!token) return;
+            const res = await fetch('/api/user/search-history', { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            const container = document.getElementById('user-search-history');
+            container.innerHTML = '';
+            (data.history || []).forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'list-group-item';
+                el.innerHTML = `<div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">${item.query}</h6>
+                    <small>${new Date(item.timestamp || item.created_at).toLocaleString()}</small>
+                </div>
+                <small>Results: ${item.results_count || 0}</small>
+                <button class="btn btn-sm btn-outline-primary mt-2" onclick="rerunSearch('${item.query.replace(/'/g, '\'')}')">Re-run</button>`;
+                container.appendChild(el);
+            });
+        }
+        async function fetchUserExportHistory() {
+            const token = localStorage.getItem('authToken');
+            if (!token) return;
+            const res = await fetch('/api/user/export-history', { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            const container = document.getElementById('user-export-history');
+            container.innerHTML = '';
+            (data.history || []).forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'list-group-item';
+                el.innerHTML = `<div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">${item.filename}</h6>
+                    <small>${new Date(item.timestamp).toLocaleString()}</small>
+                </div>
+                <small>Format: ${item.format} | Size: ${item.data_size} bytes | Status: ${item.status}</small>`;
+                container.appendChild(el);
+            });
+        }
+        async function fetchUserSavedSearches() {
+            const token = localStorage.getItem('authToken');
+            if (!token) return;
+            const res = await fetch('/api/user/saved-searches', { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            const container = document.getElementById('user-saved-searches');
+            container.innerHTML = '';
+            (data.saved_searches || []).forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'list-group-item';
+                el.innerHTML = `<div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">${item.name}</h6>
+                    <small>${new Date(item.created_at).toLocaleString()}</small>
+                </div>
+                <small>Query: ${item.query}</small>
+                <button class="btn btn-sm btn-outline-primary mt-2" onclick="rerunSearch('${item.query.replace(/'/g, '\'')}')">Re-run</button>
+                <button class="btn btn-sm btn-outline-danger mt-2 ms-2" onclick="deleteSavedSearch('${item.id}')">Delete</button>`;
+                container.appendChild(el);
+            });
+        }
+        // Tab event listeners
+        const myDataTab = document.getElementById('mydata-tab');
+        if (myDataTab) {
+            myDataTab.addEventListener('shown.bs.tab', function() {
+                fetchUserSearchHistory();
+                fetchUserExportHistory();
+                fetchUserSavedSearches();
+            });
+        }
+        // Helper functions for actions
+        function rerunSearch(query) {
+            document.getElementById('query').value = query;
+            document.getElementById('parseForm').dispatchEvent(new Event('submit'));
+        }
+        async function deleteSavedSearch(id) {
+            const token = localStorage.getItem('authToken');
+            if (!token) return;
+            if (!confirm('Delete this saved search?')) return;
+            await fetch(`/api/user/saved-searches/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            fetchUserSavedSearches();
+        }
+
+        // Admin email (replace with your real admin email)
+        const ADMIN_EMAIL = 'your@email.com';
+
+        // Fetch and render admin data
+        async function fetchAdminUsers() {
+          const token = localStorage.getItem('authToken');
+          if (!token) return;
+          const res = await fetch('/api/admin/users', { headers: { 'Authorization': `Bearer ${token}` } });
+          const data = await res.json();
+          const container = document.getElementById('admin-users-table');
+          container.innerHTML = renderTable(data.users || [], ['id','email','full_name','created_at','updated_at']);
+        }
+        async function fetchAdminSearchHistory() {
+          const token = localStorage.getItem('authToken');
+          if (!token) return;
+          const res = await fetch('/api/admin/search-history', { headers: { 'Authorization': `Bearer ${token}` } });
+          const data = await res.json();
+          const container = document.getElementById('admin-search-history-table');
+          container.innerHTML = renderTable(data.search_history || [], ['id','user_id','query','results_count','created_at']);
+        }
+        async function fetchAdminExportHistory() {
+          const token = localStorage.getItem('authToken');
+          if (!token) return;
+          const res = await fetch('/api/admin/export-history', { headers: { 'Authorization': `Bearer ${token}` } });
+          const data = await res.json();
+          const container = document.getElementById('admin-export-history-table');
+          container.innerHTML = renderTable(data.export_history || [], ['id','user_id','format','filename','data_size','status','timestamp']);
+        }
+        async function fetchAdminSavedSearches() {
+          const token = localStorage.getItem('authToken');
+          if (!token) return;
+          const res = await fetch('/api/admin/saved-searches', { headers: { 'Authorization': `Bearer ${token}` } });
+          const data = await res.json();
+          const container = document.getElementById('admin-saved-searches-table');
+          container.innerHTML = renderTable(data.saved_searches || [], ['id','user_id','name','query','created_at','updated_at']);
+        }
+        // Render a simple HTML table from array of objects
+        function renderTable(data, columns) {
+          if (!data.length) return '<div class="alert alert-info">No data found.</div>';
+          let html = '<div class="table-responsive"><table class="table table-bordered table-sm"><thead><tr>';
+          columns.forEach(col => { html += `<th>${col}</th>`; });
+          html += '</tr></thead><tbody>';
+          data.forEach(row => {
+            html += '<tr>';
+            columns.forEach(col => { html += `<td>${row[col] !== undefined ? row[col] : ''}</td>`; });
+            html += '</tr>';
+          });
+          html += '</tbody></table></div>';
+          return html;
+        }
+        // Tab event listeners for admin panel
+        const adminPanelTab = document.getElementById('adminpanel-tab');
+        if (adminPanelTab) {
+          adminPanelTab.addEventListener('shown.bs.tab', function() {
+            fetchAdminUsers();
+            fetchAdminSearchHistory();
+            fetchAdminExportHistory();
+            fetchAdminSavedSearches();
+          });
+        }
+    </script>
+</body>
+</html>
